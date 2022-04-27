@@ -1,0 +1,21 @@
+{
+  "name": "graphql",
+  "license": "MIT",
+  "author": "Matthias Giger",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "apollo-server": "^3.6.7",
+    "graphql": "^16.4.0"
+  },
+  "type": "module",
+  "devDependencies": {
+    "prettier": "^2.6.2"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "semi": false,
+    "singleQuote": true
+  }
+}
