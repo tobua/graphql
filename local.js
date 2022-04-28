@@ -1,5 +1,5 @@
 import server from './api/index.js'
 
-server.listen().then(({ url }) => {
-  console.log(`🚀 Server ready at ${url}`)
+server.listen(3000, () => {
+  console.log(`🚀 Server ready at localhost:3000`)
 })
