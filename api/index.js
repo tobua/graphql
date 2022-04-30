@@ -48,7 +48,6 @@ const startApolloServer = async (app, httpServer) => {
     typeDefs,
     resolvers,
     introspection: true,
-    debug: true,
     plugins: [
       // ApolloServerPluginDrainHttpServer({ httpServer }), // No effect noticed.
       ApolloServerPluginLandingPageGraphQLPlayground(),

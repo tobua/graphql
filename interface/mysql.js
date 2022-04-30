@@ -1,30 +1,42 @@
 import { createConnection, escape } from 'mysql2/promise'
 
-// Destructuring connection will cause issues.
-const connection = await createConnection({
-  host: 'v148573.kasserver.com',
-  user: 'd03999ef',
-  password: process.env.PASSWORD,
-  database: 'd03999ef',
-})
+const query = async (queries) => {
+  // Destructuring connection will cause issues.
+  const connection = await createConnection({
+    host: 'v148573.kasserver.com',
+    user: 'd03999ef',
+    password: process.env.PASSWORD,
+    database: 'd03999ef',
+  })
 
-export const reset = async () => {
-  await connection.query('DELETE FROM tasks')
-  await connection.query(
-    `INSERT INTO \`tasks\` (\`name\`, \`done\`) VALUES (${escape('First task.')}, false);`
-  )
-  await connection.query(
-    `INSERT INTO \`tasks\` (\`name\`, \`done\`) VALUES (${escape('Second task.')}, true);`
-  )
+  if (!Array.isArray(queries)) {
+    queries = [queries]
+  }
+
+  let results = await Promise.all(queries.map((query) => connection.query(query)))
+
+  results = results.map((result) => result[0])
+
+  connection.end()
+
+  if (results.length === 1) {
+    return results[0]
+  }
+
+  return results
 }
 
-export const list = async () => {
-  const [result] = await connection.query('SELECT * FROM tasks')
-  return result
-}
+export const reset = () =>
+  query([
+    'DELETE FROM tasks',
+    `INSERT INTO \`tasks\` (\`name\`, \`done\`) VALUES (${escape('Learn about GraphQL')}, true)`,
+    `INSERT INTO \`tasks\` (\`name\`, \`done\`) VALUES (${escape('Party')}, false)`,
+  ])
+
+export const list = () => query('SELECT * FROM tasks')
 
 export const add = async (name) => {
-  const [result] = await connection.query(
+  const result = await query(
     `INSERT INTO \`tasks\` (\`name\`, \`done\`) VALUES (${escape(name)}, false);`
   )
   return {
@@ -35,6 +47,6 @@ export const add = async (name) => {
 }
 
 export const toggle = async (id) => {
-  await connection.query(`UPDATE tasks SET done = true WHERE id=${escape(id)}`)
+  await query(`UPDATE tasks SET done = true WHERE id=${escape(id)}`)
   return true
 }
