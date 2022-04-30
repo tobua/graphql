@@ -1,41 +1,56 @@
 import { ApolloServer, gql } from 'apollo-server-express'
-import {
-  ApolloServerPluginLandingPageGraphQLPlayground,
-  ApolloServerPluginDrainHttpServer,
-} from 'apollo-server-core'
+import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core'
 import http from 'http'
 import express from 'express'
 import cors from 'cors'
-
-// https://www.apollographql.com/docs/apollo-server/integrations/middleware/#apollo-server-express
-// https://vercel.com/guides/using-express-with-vercel#standalone-express
-// https://github.com/stephanepericat/apollo-server-vercel/blob/master/api/index.js
+import 'dotenv/config'
+import { reset, list, add, toggle } from '../interface/mysql.js'
 
 const app = express()
 app.use(cors())
-app.use(express.json())
+app.get('/', (_, response) => response.send('GraphQL running under /graphql.'))
 const httpServer = http.createServer(app)
 
 const typeDefs = gql`
+  type Task {
+    id: ID!
+    name: String!
+    done: Boolean!
+  }
+
   type Query {
-    hello: String
+    tasks: [Task!]!
+  }
+
+  type Mutation {
+    addTask(name: String!): Task
+    setTaskDone(id: ID!): Boolean
   }
 `
 
 const resolvers = {
   Query: {
-    hello: () => 'world',
+    tasks: async () => await list(),
+  },
+  Mutation: {
+    addTask: async (_, { name }) => {
+      return add(name)
+    },
+    setTaskDone: async (_, { id }) => {
+      return toggle(id)
+    },
   },
 }
 
 const startApolloServer = async (app, httpServer) => {
+  // await reset()
   const server = new ApolloServer({
     typeDefs,
     resolvers,
     introspection: true,
     debug: true,
     plugins: [
-      ApolloServerPluginDrainHttpServer({ httpServer }),
+      // ApolloServerPluginDrainHttpServer({ httpServer }), // No effect noticed.
       ApolloServerPluginLandingPageGraphQLPlayground(),
     ],
   })
@@ -43,6 +58,6 @@ const startApolloServer = async (app, httpServer) => {
   server.applyMiddleware({ app })
 }
 
-startApolloServer(app, httpServer)
+await startApolloServer(app, httpServer)
 
 export default httpServer
